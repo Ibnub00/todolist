@@ -1,9 +1,10 @@
 import React from 'react';
+import todolist from '../app/components/todolist';
 
 function page() {
   return (
     <>
-      <h1>Landing Page </h1>
+      <todolist />
     </>
   );
 }
