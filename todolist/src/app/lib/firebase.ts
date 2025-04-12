@@ -9,7 +9,6 @@ const firebaseConfig = {
     storageBucket: "todolist-b02d1.firebasestorage.app",
     messagingSenderId: "473066538552",
     appId: "1:473066538552:web:9650fb64684689d3d208cd",
-    measurementId: "G-3RMERTWMK0"
 };
 
 // Inisialisasi Firebase
