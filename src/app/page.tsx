@@ -6,7 +6,7 @@ function page() {
     <>
       <TodoList />
     </>
-    );
+  );
 }
 
 export default page;
