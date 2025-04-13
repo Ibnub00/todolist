@@ -1,151 +1,122 @@
 'use client';
+
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Swal from 'sweetalert2';
-import {
-  collection,
-  addDoc,
-  getDocs,
-  deleteDoc,
-  doc,
-  updateDoc,
-} from 'firebase/firestore';
-import { db } from '../app/lib/firebase';
+import { v4 as uuidv4 } from 'uuid';
 
-type Task = {
+interface Task {
   id: string;
   text: string;
   completed: boolean;
   deadline: string;
-};
+}
 
-export default function TodoList() {
+export default function Home() {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [timeRemaining, setTimeRemaining] = useState<{ [key: string]: string }>(
-    {}
-  );
-
-  useEffect(() => {
-    const fetchTasks = async () => {
-      const querySnapshot = await getDocs(collection(db, 'tasks'));
-      const tasksData = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Task[];
-      setTasks(tasksData);
-    };
-    fetchTasks();
-  }, []);
+  const [input, setInput] = useState('');
+  const [deadline, setDeadline] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
     const interval = setInterval(() => {
-      const newTimeRemaining: { [key: string]: string } = {};
+      const updatedTimes: { [key: string]: string } = {};
       tasks.forEach((task) => {
-        newTimeRemaining[task.id] = calculateTimeRemaining(task.deadline);
+        updatedTimes[task.id] = calculateTimeRemaining(task.deadline);
       });
-      setTimeRemaining(newTimeRemaining);
+      setTimeRemaining(updatedTimes);
     }, 1000);
 
     return () => clearInterval(interval);
   }, [tasks]);
 
-  const calculateTimeRemaining = (deadline: string): string => {
-    const deadlineTime = new Date(deadline).getTime();
-    const now = new Date().getTime();
-    const difference = deadlineTime - now;
+  const calculateTimeRemaining = (deadline: string) => {
+    const now = new Date();
+    const end = new Date(deadline);
+    const diff = end.getTime() - now.getTime();
 
-    if (difference <= 0) return 'Waktu habis!';
+    if (diff <= 0) return 'Waktu habis!';
 
-    const hours = Math.floor(difference / (1000 * 60 * 60));
-    const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
     return `${hours}j ${minutes}m ${seconds}d`;
   };
 
-  const addTask = async (): Promise<void> => {
-    const { value: formValues } = await Swal.fire({
-      title: 'Tambahkan tugas baru',
-      html:
-        '<input id="swal-input1" class="swal2-input" placeholder="Nama tugas">' +
-        '<input id="swal-input2" type="datetime-local" class="swal2-input">',
-      focusConfirm: false,
-      showCancelButton: true,
-      confirmButtonText: 'Tambah',
-      cancelButtonText: 'Batal',
-      preConfirm: () => {
-        return [
-          (document.getElementById('swal-input1') as HTMLInputElement)?.value,
-          (document.getElementById('swal-input2') as HTMLInputElement)?.value,
-        ];
-      },
-    });
-
-    if (formValues && formValues[0] && formValues[1]) {
-      const newTask: Omit<Task, 'id'> = {
-        text: formValues[0],
-        completed: false,
-        deadline: formValues[1],
-      };
-      const docRef = await addDoc(collection(db, 'tasks'), newTask);
-      setTasks([...tasks, { id: docRef.id, ...newTask }]);
-    }
+  const addTask = () => {
+    if (!input || !deadline) return;
+    const newTask: Task = {
+      id: uuidv4(),
+      text: input,
+      completed: false,
+      deadline: deadline,
+    };
+    setTasks([...tasks, newTask]);
+    setInput('');
+    setDeadline('');
   };
 
-  const toggleTask = async (id: string): Promise<void> => {
-    const updatedTasks = tasks.map((task) =>
-      task.id === id ? { ...task, completed: !task.completed } : task
-    );
-    setTasks(updatedTasks);
-    const taskRef = doc(db, 'tasks', id);
-    await updateDoc(taskRef, {
-      completed: updatedTasks.find((task) => task.id === id)?.completed,
-    });
-  };
-
-  const deleteTask = async (id: string): Promise<void> => {
-    await deleteDoc(doc(db, 'tasks', id));
+  const deleteTask = (id: string) => {
     setTasks(tasks.filter((task) => task.id !== id));
   };
 
-  const editTask = async (id: string): Promise<void> => {
+  const editTask = (id: string) => {
     const taskToEdit = tasks.find((task) => task.id === id);
-    if (!taskToEdit) return;
-
-    const { value: newText } = await Swal.fire({
-      title: 'Edit Tugas',
-      input: 'text',
-      inputLabel: 'Tugas',
-      inputValue: taskToEdit.text,
-      showCancelButton: true,
-      confirmButtonText: 'Simpan',
-      cancelButtonText: 'Batal',
-    });
-
-    if (newText) {
-      const updatedTasks = tasks.map((task) =>
-        task.id === id ? { ...task, text: newText } : task
-      );
-      setTasks(updatedTasks);
-      const taskRef = doc(db, 'tasks', id);
-      await updateDoc(taskRef, { text: newText });
+    if (taskToEdit) {
+      setInput(taskToEdit.text);
+      setDeadline(taskToEdit.deadline);
+      setEditingId(id);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center py-10">
-      <div className="bg-gray-900 border border-gray-700 p-8 rounded-lg w-full max-w-2xl">
-        <h1 className="text-3xl font-bold mb-2 text-white text-center">To-Do List</h1>
-        <p className="text-sm text-white mb-6 text-center">
-          Kelola semua tugas Anda dengan mudah.
-        </p>
+  const updateTask = () => {
+    if (!input || !deadline || !editingId) return;
+    setTasks(
+      tasks.map((task) =>
+        task.id === editingId ? { ...task, text: input, deadline: deadline } : task
+      )
+    );
+    setInput('');
+    setDeadline('');
+    setEditingId(null);
+  };
 
-        <div className="flex justify-center mb-6">
+  const toggleTask = (id: string) => {
+    setTasks(
+      tasks.map((task) =>
+        task.id === id ? { ...task, completed: !task.completed } : task
+      )
+    );
+  };
+
+  return (
+    <main className="min-h-screen flex items-center justify-center bg-black p-4">
+      <div className="bg-zinc-900 rounded-2xl shadow-lg p-8 w-full max-w-md space-y-6">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-white mb-2">To-Do List</h1>
+          <p className="text-white text-sm">Kelola semua tugas Anda dengan mudah.</p>
+        </div>
+
+        <div className="flex flex-col space-y-4">
+          <input
+            type="text"
+            placeholder="Tambah tugas..."
+            className="p-2 rounded-lg bg-black text-white border border-yellow-600 placeholder-yellow-600 focus:outline-none"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+          />
+          <input
+            type="datetime-local"
+            className="p-2 rounded-lg bg-black text-white border border-yellow-600 placeholder-yellow-600 focus:outline-none"
+            value={deadline}
+            onChange={(e) => setDeadline(e.target.value)}
+          />
           <button
-            onClick={addTask}
-            className="bg-yellow-600 hover:bg-yellow-500 text-white font-semibold py-2 px-4 rounded-lg"
+            onClick={editingId ? updateTask : addTask}
+            className="p-2 rounded-lg bg-yellow-600 hover:bg-yellow-500 text-white font-semibold transition"
           >
-            Tambah Tugas
+            {editingId ? 'Update Tugas' : 'Tambah Tugas'}
           </button>
         </div>
 
@@ -155,12 +126,12 @@ export default function TodoList() {
               const timeLeft = calculateTimeRemaining(task.deadline);
               const isExpired = timeLeft === 'Waktu habis!';
 
-              let taskColor = 'bg-yellow-600 text-white'; // default kuning
+              let taskColor = 'bg-yellow-600 text-white'; // default aktif
               if (isExpired) {
                 taskColor = 'bg-red-700 text-white'; // deadline lewat
               }
               if (task.completed) {
-                taskColor = 'bg-yellow-600 bg-opacity-50 text-white'; // selesai -> kuning transparan
+                taskColor = 'bg-yellow-600 bg-opacity-30 text-white'; // selesai
               }
 
               return (
@@ -208,6 +179,6 @@ export default function TodoList() {
           </AnimatePresence>
         </ul>
       </div>
-    </div>
+    </main>
   );
 }
