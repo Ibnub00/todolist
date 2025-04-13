@@ -21,9 +21,7 @@ type Task = {
 
 export default function TodoList() {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [timeRemaining, setTimeRemaining] = useState<{ [key: string]: string }>(
-    {}
-  );
+  const [timeRemaining, setTimeRemaining] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -108,13 +106,45 @@ export default function TodoList() {
     setTasks(tasks.filter((task) => task.id !== id));
   };
 
+  const editTask = async (id: string, currentText: string, currentDeadline: string): Promise<void> => {
+    const { value: formValues } = await Swal.fire({
+      title: 'Edit Tugas',
+      html:
+        `<input id="swal-input1" class="swal2-input" placeholder="Nama tugas" value="${currentText}">` +
+        `<input id="swal-input2" type="datetime-local" class="swal2-input" value="${currentDeadline}">`,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: 'Simpan',
+      cancelButtonText: 'Batal',
+      preConfirm: () => {
+        return [
+          (document.getElementById('swal-input1') as HTMLInputElement)?.value,
+          (document.getElementById('swal-input2') as HTMLInputElement)?.value,
+        ];
+      },
+    });
+
+    if (formValues && formValues[0] && formValues[1]) {
+      const updatedTasks = tasks.map((task) =>
+        task.id === id ? { ...task, text: formValues[0], deadline: formValues[1] } : task
+      );
+      setTasks(updatedTasks);
+
+      const taskRef = doc(db, 'tasks', id);
+      await updateDoc(taskRef, {
+        text: formValues[0],
+        deadline: formValues[1],
+      });
+    }
+  };
+
   return (
     <div className="max-w-md mx-auto mt-10 p-4 bg-white shadow-md rounded-lg">
       <h1 className="text-2xl text-emerald-500 font-bold mb-4">To-Do List</h1>
       <div className="flex justify-center mb-4">
         <button
           onClick={addTask}
-          className="bg-slate-500 text-white px-4 py-2 rounded"
+          className="bg-slate-500 text-white px-4 py-2 rounded hover:bg-slate-600 transition"
         >
           Tambah Tugas
         </button>
@@ -137,7 +167,7 @@ export default function TodoList() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }}
-                className={`flex flex-col justify-between p-2 border-b rounded-lg ${taskColor}`}
+                className={`flex flex-col justify-between p-2 mb-2 border-b rounded-lg ${taskColor}`}
               >
                 <div className="flex justify-between items-center">
                   <span
@@ -150,12 +180,20 @@ export default function TodoList() {
                   >
                     {task.text}
                   </span>
-                  <button
-                    onClick={() => deleteTask(task.id)}
-                    className="text-white p-1 rounded bg-red-600 hover:bg-red-800"
-                  >
-                    Hapus
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => editTask(task.id, task.text, task.deadline)}
+                      className="bg-blue-500 hover:bg-blue-700 text-white p-1 px-2 rounded text-xs"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => deleteTask(task.id)}
+                      className="bg-red-600 hover:bg-red-800 text-white p-1 px-2 rounded text-xs"
+                    >
+                      Hapus
+                    </button>
+                  </div>
                 </div>
                 <p className="text-sm text-gray-700">
                   Deadline: {new Date(task.deadline).toLocaleString()}
