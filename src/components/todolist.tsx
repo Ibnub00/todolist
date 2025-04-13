@@ -134,76 +134,80 @@ export default function TodoList() {
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col items-center py-10">
-      <h1 className="text-3xl font-bold mb-2">To-Do List</h1>
-      <p className="text-sm text-white mb-6">Kelola semua tugas anda dengan cara yang mudah </p>
-      
-      <div className="flex justify-center mb-6">
-        <button
-          onClick={addTask}
-          className="bg-yellow-400 hover:bg-yellow-300 text-white font-semibold py-2 px-4 rounded-lg"
-        >
-          Tambah Tugas
-        </button>
-      </div>
+      <div className="bg-gray-900 border border-gray-700 p-8 rounded-lg w-full max-w-2xl">
+        <h1 className="text-3xl font-bold mb-2 text-white text-center">To-Do List</h1>
+        <p className="text-sm text-white mb-6 text-center">
+          Kelola semua tugas Anda menjadi sangat mudah.
+        </p>
 
-      <ul className="w-full max-w-md">
-        <AnimatePresence>
-          {tasks.map((task) => {
-            const timeLeft = calculateTimeRemaining(task.deadline);
-            const isExpired = timeLeft === 'Waktu habis!';
+        <div className="flex justify-center mb-6">
+          <button
+            onClick={addTask}
+            className="bg-yellow-600 hover:bg-yellow-500 text-white font-semibold py-2 px-4 rounded-lg"
+          >
+            Tambah Tugas
+          </button>
+        </div>
 
-            let taskColor = 'bg-yellow-300 text-white'; // default kuning
-            if (isExpired) {
-              taskColor = 'bg-red-700 text-white'; // deadline lewat merah gelap
-            }
-            if (task.completed) {
-              taskColor = 'bg-yellow-200 bg-opacity-60 text-white'; // selesai -> kuning transparan
-            }
+        <ul className="w-full">
+          <AnimatePresence>
+            {tasks.map((task) => {
+              const timeLeft = calculateTimeRemaining(task.deadline);
+              const isExpired = timeLeft === 'Waktu habis!';
 
-            return (
-              <motion.li
-                key={task.id}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-                className={`flex flex-col justify-between p-3 mb-3 rounded-lg ${taskColor}`}
-              >
-                <div className="flex justify-between items-center">
-                  <span
-                    onClick={() => toggleTask(task.id)}
-                    className={`cursor-pointer ${
-                      task.completed ? 'line-through' : ''
-                    }`}
-                  >
-                    {task.text}
-                  </span>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => editTask(task.id)}
-                      className="text-xs bg-yellow-600 hover:bg-yellow-700 py-1 px-2 rounded"
+              let taskColor = 'bg-yellow-600 text-white'; // default kuning (seperti tombol edit lama)
+              if (isExpired) {
+                taskColor = 'bg-red-700 text-white'; // deadline lewat merah gelap
+              }
+              if (task.completed) {
+                taskColor = 'bg-yellow-400 bg-opacity-60 text-white'; // selesai -> kuning cerah transparan
+              }
+
+              return (
+                <motion.li
+                  key={task.id}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className={`flex flex-col justify-between p-3 mb-3 rounded-lg ${taskColor}`}
+                >
+                  <div className="flex justify-between items-center">
+                    <span
+                      onClick={() => toggleTask(task.id)}
+                      className={`cursor-pointer ${
+                        task.completed ? 'line-through' : ''
+                      }`}
                     >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => deleteTask(task.id)}
-                      className="text-xs bg-red-600 hover:bg-red-700 py-1 px-2 rounded"
-                    >
-                      Hapus
-                    </button>
+                      {task.text}
+                    </span>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => editTask(task.id)}
+                        className="text-xs bg-yellow-400 hover:bg-yellow-300 text-black font-bold py-1 px-2 rounded"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => deleteTask(task.id)}
+                        className="text-xs bg-red-600 hover:bg-red-700 text-white py-1 px-2 rounded"
+                      >
+                        Hapus
+                      </button>
+                    </div>
                   </div>
-                </div>
-                <p className="text-xs mt-1">
-                  Deadline: {new Date(task.deadline).toLocaleString()}
-                </p>
-                <p className="text-xs font-semibold">
-                  ⏳ {timeRemaining[task.id] || 'Menghitung...'}
-                </p>
-              </motion.li>
-            );
-          })}
-        </AnimatePresence>
-      </ul>
+                  <p className="text-xs mt-1">
+                    Deadline: {new Date(task.deadline).toLocaleString()}
+                  </p>
+                  <p className="text-xs font-semibold">
+                    ⏳ {timeRemaining[task.id] || 'Menghitung...'}
+                  </p>
+                </motion.li>
+              );
+            })}
+          </AnimatePresence>
+        </ul>
+      </div>
     </div>
   );
 }
