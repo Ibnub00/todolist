@@ -137,7 +137,7 @@ export default function TodoList() {
       <div className="bg-gray-900 border border-gray-700 p-8 rounded-lg w-full max-w-2xl">
         <h1 className="text-3xl font-bold mb-2 text-white text-center">To-Do List</h1>
         <p className="text-sm text-white mb-6 text-center">
-          Kelola semua tugas Anda menjadi sangat mudah.
+          Kelola semua tugas Anda dengan mudah.
         </p>
 
         <div className="flex justify-center mb-6">
@@ -155,12 +155,12 @@ export default function TodoList() {
               const timeLeft = calculateTimeRemaining(task.deadline);
               const isExpired = timeLeft === 'Waktu habis!';
 
-              let taskColor = 'bg-yellow-600 text-white'; // default kuning (seperti tombol edit lama)
+              let taskColor = 'bg-yellow-600 text-white'; // default kuning
               if (isExpired) {
-                taskColor = 'bg-red-700 text-white'; // deadline lewat merah gelap
+                taskColor = 'bg-red-700 text-white'; // deadline lewat
               }
               if (task.completed) {
-                taskColor = 'bg-yellow-400 bg-opacity-60 text-white'; // selesai -> kuning cerah transparan
+                taskColor = 'bg-yellow-600 bg-opacity-50 text-white'; // selesai -> kuning transparan
               }
 
               return (
@@ -184,7 +184,7 @@ export default function TodoList() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => editTask(task.id)}
-                        className="text-xs bg-yellow-400 hover:bg-yellow-300 text-black font-bold py-1 px-2 rounded"
+                        className="text-xs bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-2 rounded"
                       >
                         Edit
                       </button>
