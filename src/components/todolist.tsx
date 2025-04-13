@@ -157,11 +157,12 @@ export default function TodoList() {
           {tasks.map((task) => {
             const timeLeft = calculateTimeRemaining(task.deadline);
             const isExpired = timeLeft === 'Waktu habis!';
+
             const taskColor = task.completed
-              ? 'bg-yellow-300 bg-opacity-30'
+              ? 'bg-yellow-600 bg-opacity-30' // Jika sudah selesai → kuning tua transparan
               : isExpired
-              ? 'bg-red-800 bg-opacity-70'
-              : 'bg-yellow-300';
+              ? 'bg-red-900'                 // Jika expired → merah gelap
+              : 'bg-yellow-500';              // Normal → kuning terang
 
             return (
               <motion.li
@@ -175,8 +176,8 @@ export default function TodoList() {
                 <div className="flex justify-between items-center">
                   <span
                     onClick={() => toggleTask(task.id)}
-                    className={`cursor-pointer ${
-                      task.completed ? 'line-through text-white' : 'text-white font-semibold'
+                    className={`cursor-pointer text-white ${
+                      task.completed ? 'line-through' : 'font-semibold'
                     }`}
                   >
                     {task.text}
@@ -196,10 +197,18 @@ export default function TodoList() {
                     </button>
                   </div>
                 </div>
-                <p className="text-xs text-white mt-1">
+                <p
+                  className={`text-xs text-white mt-1 ${
+                    task.completed ? 'line-through' : ''
+                  }`}
+                >
                   Deadline: {new Date(task.deadline).toLocaleString()}
                 </p>
-                <p className="text-xs text-white mt-1">
+                <p
+                  className={`text-xs text-white mt-1 ${
+                    task.completed ? 'line-through' : ''
+                  }`}
+                >
                   ⏳ {timeRemaining[task.id] || 'Menghitung...'}
                 </p>
               </motion.li>
