@@ -142,12 +142,12 @@ export default function TodoList() {
     <div className="max-w-md mx-auto mt-10 p-4 bg-black shadow-md rounded-lg border border-gray-700">
       <h1 className="text-2xl text-white font-bold mb-1 text-center">To-Do List</h1>
       <p className="text-sm text-gray-400 mb-6 text-center">
-        Kelola semua tugas Anda dengan mudah.
+        Tambahkan dan catat tugas/kegiatan anda agar lebih produktif
       </p>
       <div className="flex justify-center mb-4">
         <button
           onClick={addTask}
-          className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-400"
+          className="bg-yellow-600 bg-opacity-30 text-white px-4 py-2 rounded hover:bg-yellow-600 hover:bg-opacity-40"
         >
           Tambah Tugas
         </button>
@@ -159,10 +159,10 @@ export default function TodoList() {
             const isExpired = timeLeft === 'Waktu habis!';
 
             const taskColor = task.completed
-              ? 'bg-yellow-600 bg-opacity-30' // Jika sudah selesai → kuning tua transparan
+              ? 'bg-yellow-600 bg-opacity-10' // completed → super transparan
               : isExpired
-              ? 'bg-red-900'                 // Jika expired → merah gelap
-              : 'bg-yellow-500';              // Normal → kuning terang
+              ? 'bg-red-900'                // expired → merah gelap
+              : 'bg-yellow-600 bg-opacity-30'; // normal → transparan kuning tua
 
             return (
               <motion.li
