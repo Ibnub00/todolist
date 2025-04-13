@@ -106,48 +106,16 @@ export default function TodoList() {
     setTasks(tasks.filter((task) => task.id !== id));
   };
 
-  const editTask = async (id: string, currentText: string, currentDeadline: string): Promise<void> => {
-    const { value: formValues } = await Swal.fire({
-      title: 'Edit Tugas',
-      html:
-        `<input id="swal-input1" class="swal2-input" placeholder="Nama tugas" value="${currentText}">` +
-        `<input id="swal-input2" type="datetime-local" class="swal2-input" value="${currentDeadline}">`,
-      focusConfirm: false,
-      showCancelButton: true,
-      confirmButtonText: 'Simpan',
-      cancelButtonText: 'Batal',
-      preConfirm: () => {
-        return [
-          (document.getElementById('swal-input1') as HTMLInputElement)?.value,
-          (document.getElementById('swal-input2') as HTMLInputElement)?.value,
-        ];
-      },
-    });
-
-    if (formValues && formValues[0] && formValues[1]) {
-      const updatedTasks = tasks.map((task) =>
-        task.id === id ? { ...task, text: formValues[0], deadline: formValues[1] } : task
-      );
-      setTasks(updatedTasks);
-
-      const taskRef = doc(db, 'tasks', id);
-      await updateDoc(taskRef, {
-        text: formValues[0],
-        deadline: formValues[1],
-      });
-    }
-  };
-
   return (
-    <div className="max-w-md mx-auto mt-10 p-4 bg-white shadow-md rounded-lg">
-      <h1 className="text-2xl text-emerald-500 font-bold mb-4">To-Do List</h1>
-      <p className="text-gray-600 text-center mb-6">
-  Tambahkan dan catat tugas/kegiatan anda agar lebih produktif
-</p>
+    <div className="max-w-md mx-auto mt-10 p-4 bg-yellow-100 shadow-md rounded-lg">
+      <h1 className="text-2xl text-black font-bold mb-2">To-Do List</h1>
+      <p className="text-gray-700 mb-6 text-left">
+        Kelola tugas anda dan kerjakan tepat waktu.
+      </p>
       <div className="flex justify-center mb-4">
         <button
           onClick={addTask}
-          className="bg-slate-500 text-white px-4 py-2 rounded hover:bg-slate-600 transition"
+          className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-4 py-2 rounded"
         >
           Tambah Tugas
         </button>
@@ -161,7 +129,7 @@ export default function TodoList() {
               ? 'bg-green-200'
               : isExpired
               ? 'bg-red-200'
-              : 'bg-yellow-200';
+              : 'bg-yellow-50';
 
             return (
               <motion.li
@@ -170,7 +138,7 @@ export default function TodoList() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }}
-                className={`flex flex-col justify-between p-2 mb-2 border-b rounded-lg ${taskColor}`}
+                className={`flex flex-col justify-between p-2 mb-2 rounded-lg shadow-sm ${taskColor}`}
               >
                 <div className="flex justify-between items-center">
                   <span
@@ -178,30 +146,22 @@ export default function TodoList() {
                     className={`cursor-pointer transition-500 ${
                       task.completed
                         ? 'line-through text-gray-500'
-                        : 'font-semibold text-gray-700'
+                        : 'font-semibold text-black'
                     }`}
                   >
                     {task.text}
                   </span>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => editTask(task.id, task.text, task.deadline)}
-                      className="bg-blue-500 hover:bg-blue-700 text-white p-1 px-2 rounded text-xs"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => deleteTask(task.id)}
-                      className="bg-red-600 hover:bg-red-800 text-white p-1 px-2 rounded text-xs"
-                    >
-                      Hapus
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => deleteTask(task.id)}
+                    className="text-white p-1 rounded bg-red-500 hover:bg-red-700"
+                  >
+                    Hapus
+                  </button>
                 </div>
-                <p className="text-sm text-gray-700">
+                <p className="text-sm text-gray-700 text-left">
                   Deadline: {new Date(task.deadline).toLocaleString()}
                 </p>
-                <p className="text-xs font-semibold text-gray-700">
+                <p className="text-xs font-semibold text-gray-700 text-left">
                   ⏳ {timeRemaining[task.id] || 'Menghitung...'}
                 </p>
               </motion.li>
