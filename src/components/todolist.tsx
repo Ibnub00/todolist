@@ -11,6 +11,7 @@ import {
   updateDoc,
 } from 'firebase/firestore';
 import { db } from '../app/lib/firebase';
+import { Pencil, Trash2, Plus } from 'lucide-react'; // ➕ Import Plus icon
 
 type Task = {
   id: string;
@@ -106,17 +107,49 @@ export default function TodoList() {
     setTasks(tasks.filter((task) => task.id !== id));
   };
 
+  const editTask = async (id: string, currentText: string, currentDeadline: string): Promise<void> => {
+    const { value: formValues } = await Swal.fire({
+      title: 'Edit tugas',
+      html:
+        `<input id="swal-input1" class="swal2-input" placeholder="Nama tugas" value="${currentText}">` +
+        `<input id="swal-input2" type="datetime-local" class="swal2-input" value="${currentDeadline}">`,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: 'Simpan',
+      cancelButtonText: 'Batal',
+      preConfirm: () => {
+        return [
+          (document.getElementById('swal-input1') as HTMLInputElement)?.value,
+          (document.getElementById('swal-input2') as HTMLInputElement)?.value,
+        ];
+      },
+    });
+
+    if (formValues && formValues[0] && formValues[1]) {
+      const updatedTasks = tasks.map((task) =>
+        task.id === id ? { ...task, text: formValues[0], deadline: formValues[1] } : task
+      );
+      setTasks(updatedTasks);
+      const taskRef = doc(db, 'tasks', id);
+      await updateDoc(taskRef, {
+        text: formValues[0],
+        deadline: formValues[1],
+      });
+    }
+  };
+
   return (
     <div className="max-w-md mx-auto mt-10 p-4 bg-yellow-100 shadow-md rounded-lg">
       <h1 className="text-2xl text-black font-bold mb-2">To-Do List</h1>
       <p className="text-gray-700 mb-6 text-left">
-        Kelola tugas anda dan kerjakan tepat waktu.
+        Tambahkan dan catat tugas/kegiatan anda agar lebih produktif
       </p>
       <div className="flex justify-center mb-4">
         <button
           onClick={addTask}
-          className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-4 py-2 rounded"
+          className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-4 py-2 rounded flex items-center gap-2"
         >
+          <Plus size={18} /> {/* ➕ Icon tambah */}
           Tambah Tugas
         </button>
       </div>
@@ -151,12 +184,20 @@ export default function TodoList() {
                   >
                     {task.text}
                   </span>
-                  <button
-                    onClick={() => deleteTask(task.id)}
-                    className="text-white p-1 rounded bg-red-500 hover:bg-red-700"
-                  >
-                    Hapus
-                  </button>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => editTask(task.id, task.text, task.deadline)}
+                      className="flex items-center gap-1 text-white p-1 rounded bg-blue-500 hover:bg-blue-700"
+                    >
+                      <Pencil size={16} /> Edit
+                    </button>
+                    <button
+                      onClick={() => deleteTask(task.id)}
+                      className="flex items-center gap-1 text-white p-1 rounded bg-red-500 hover:bg-red-700"
+                    >
+                      <Trash2 size={16} /> Hapus
+                    </button>
+                  </div>
                 </div>
                 <p className="text-sm text-gray-700 text-left">
                   Deadline: {new Date(task.deadline).toLocaleString()}
