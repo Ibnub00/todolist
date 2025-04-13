@@ -108,16 +108,48 @@ export default function TodoList() {
     setTasks(tasks.filter((task) => task.id !== id));
   };
 
+  const editTask = async (id: string, currentText: string, currentDeadline: string): Promise<void> => {
+    const { value: formValues } = await Swal.fire({
+      title: 'Edit tugas',
+      html:
+        `<input id="swal-input1" class="swal2-input" placeholder="Nama tugas" value="${currentText}">` +
+        `<input id="swal-input2" type="datetime-local" class="swal2-input" value="${currentDeadline}">`,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: 'Simpan',
+      cancelButtonText: 'Batal',
+      preConfirm: () => {
+        return [
+          (document.getElementById('swal-input1') as HTMLInputElement)?.value,
+          (document.getElementById('swal-input2') as HTMLInputElement)?.value,
+        ];
+      },
+    });
+
+    if (formValues && formValues[0] && formValues[1]) {
+      const updatedTasks = tasks.map((task) =>
+        task.id === id ? { ...task, text: formValues[0], deadline: formValues[1] } : task
+      );
+      setTasks(updatedTasks);
+
+      const taskRef = doc(db, 'tasks', id);
+      await updateDoc(taskRef, {
+        text: formValues[0],
+        deadline: formValues[1],
+      });
+    }
+  };
+
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-black text-white shadow-lg rounded-xl">
       <h1 className="text-3xl font-bold mb-2 text-center">To-Do List</h1>
       <p className="text-sm text-gray-300 mb-6 text-center">
-        Tambahkan dan catat tugas/kegiatan anda agar lebih produktif
+        Kelola tugas Anda dan jadilah produktif.
       </p>
       <div className="flex justify-center mb-6">
         <button
           onClick={addTask}
-          className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg"
+          className="bg-yellow-400 hover:bg-yellow-300 text-black font-semibold py-2 px-4 rounded-lg"
         >
           Tambah Tugas
         </button>
@@ -127,11 +159,14 @@ export default function TodoList() {
           {tasks.map((task) => {
             const timeLeft = calculateTimeRemaining(task.deadline);
             const isExpired = timeLeft === 'Waktu habis!';
-            const taskColor = task.completed
-              ? 'bg-green-600'
-              : isExpired
-              ? 'bg-red-600'
-              : 'bg-yellow-600';
+
+            let taskColor = 'bg-yellow-300 text-black'; // default kuning
+            if (isExpired) {
+              taskColor = 'bg-red-600 text-white'; // expired jadi merah
+            }
+            if (task.completed) {
+              taskColor = 'bg-red-300 bg-opacity-60 text-black'; // selesai jadi merah transparan
+            }
 
             return (
               <motion.li
@@ -146,24 +181,30 @@ export default function TodoList() {
                   <span
                     onClick={() => toggleTask(task.id)}
                     className={`cursor-pointer ${
-                      task.completed
-                        ? 'line-through text-gray-300'
-                        : 'text-white font-semibold'
+                      task.completed ? 'line-through' : 'font-semibold'
                     }`}
                   >
                     {task.text}
                   </span>
-                  <button
-                    onClick={() => deleteTask(task.id)}
-                    className="bg-red-800 hover:bg-red-700 text-white px-3 py-1 rounded-lg"
-                  >
-                    Hapus
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => editTask(task.id, task.text, task.deadline)}
+                      className="bg-blue-500 hover:bg-blue-400 text-white px-3 py-1 rounded-lg"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => deleteTask(task.id)}
+                      className="bg-red-800 hover:bg-red-700 text-white px-3 py-1 rounded-lg"
+                    >
+                      Hapus
+                    </button>
+                  </div>
                 </div>
                 <p className="text-sm mt-2">
                   Deadline: {new Date(task.deadline).toLocaleString()}
                 </p>
-                <p className="text-xs text-gray-300">
+                <p className="text-xs text-gray-700">
                   ⏳ {timeRemaining[task.id] || 'Menghitung...'}
                 </p>
               </motion.li>
