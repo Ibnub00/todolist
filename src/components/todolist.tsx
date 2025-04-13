@@ -159,10 +159,10 @@ export default function TodoList() {
             const isExpired = timeLeft === 'Waktu habis!';
 
             const taskColor = task.completed
-              ? 'bg-yellow-600 bg-opacity-10' // completed → super transparan
+              ? 'bg-gray-400 bg-opacity-20' // ✅ completed → abu abu transparan
               : isExpired
-              ? 'bg-red-900'                // expired → merah gelap
-              : 'bg-yellow-600 bg-opacity-30'; // normal → transparan kuning tua
+              ? 'bg-red-900'               // expired → merah gelap
+              : 'bg-yellow-600 bg-opacity-30'; // normal → kuning transparan
 
             return (
               <motion.li
